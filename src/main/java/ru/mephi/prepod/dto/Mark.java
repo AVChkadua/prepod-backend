@@ -3,6 +3,7 @@ package ru.mephi.prepod.dto;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "marks")
@@ -18,6 +19,9 @@ public class Mark {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "date", nullable = false)
+    private LocalDate date;
 
     @ManyToOne
     @JoinColumn(name = "subject_id", nullable = false)
