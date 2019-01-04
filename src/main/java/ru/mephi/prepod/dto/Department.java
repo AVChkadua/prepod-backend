@@ -3,6 +3,7 @@ package ru.mephi.prepod.dto;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "departments")
@@ -22,4 +23,10 @@ public class Department {
     @ManyToOne
     @JoinColumn(name = "institute_id", nullable = false)
     private Institute institute;
+
+    @OneToMany(mappedBy = "department")
+    private List<Professor> professors;
+
+    @OneToMany(mappedBy = "department")
+    private List<Group> groups;
 }

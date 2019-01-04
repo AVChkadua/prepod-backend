@@ -2,10 +2,8 @@ package ru.mephi.prepod.dto;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "positions")
@@ -18,4 +16,7 @@ public class Position {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @ManyToMany(mappedBy = "positions")
+    private List<Professor> professors;
 }

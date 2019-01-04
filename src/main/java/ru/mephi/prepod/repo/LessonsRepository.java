@@ -17,8 +17,8 @@ public interface LessonsRepository extends CrudRepository<Lesson, String> {
     List<Lesson> findAllByProfessorId(@Param("professorId") String professorId);
 
     @Query("from Lesson l join Group g where l.subject.id = :subjectId and g.id = :groupId " +
-           "and ((l.startInCemester is null and l.endInCemester is null) or " +
-           "(:date between l.startInCemester and l.endInCemester)) ")
+           "and ((l.startInSemester is null and l.endInSemester is null) or " +
+           "(:date between l.startInSemester and l.endInSemester)) ")
     List<Lesson> findBySubjectIdAndDateAndGroupId(@Param("subjectId") String subjectId, @Param("date") LocalDate date,
-                                            @Param("groupId") String groupId);
+                                                  @Param("groupId") String groupId);
 }

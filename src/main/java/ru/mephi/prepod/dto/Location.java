@@ -1,11 +1,11 @@
 package ru.mephi.prepod.dto;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
+import ru.mephi.prepod.View;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "locations")
@@ -14,8 +14,13 @@ public class Location {
 
     @Id
     @Column(name = "id", nullable = false)
+    @JsonView(View.Summary.class)
     private String id;
 
     @Column(name = "name", nullable = false)
+    @JsonView(View.Summary.class)
     private String name;
+
+    @OneToMany(mappedBy = "location")
+    private List<Lesson> lessons;
 }

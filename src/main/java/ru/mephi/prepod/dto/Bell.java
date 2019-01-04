@@ -1,6 +1,8 @@
 package ru.mephi.prepod.dto;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
+import ru.mephi.prepod.View;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,5 +23,6 @@ public class Bell {
     private Boolean isOpening;
 
     @Column(name = "time", nullable = false)
+    @JsonView(View.Summary.class)
     private LocalTime time;
 }

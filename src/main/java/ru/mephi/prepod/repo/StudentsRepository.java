@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface StudentsRepository extends CrudRepository<Student, String> {
 
-    @Query("from Student s join Group g where g.id = :groupId")
+    @Query("from Student s join Group g where g.id = :groupId or g.parentGroup.id = :groupId")
     List<Student> findAllByGroupId(@Param("groupId") String groupId);
 }

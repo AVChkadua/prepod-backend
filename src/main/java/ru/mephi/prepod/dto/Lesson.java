@@ -3,7 +3,9 @@ package ru.mephi.prepod.dto;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "lessons")
@@ -20,11 +22,20 @@ public class Lesson {
     @Column(name = "week", nullable = false)
     private WeekType weekType;
 
-    @Column(name = "start_in_cemester")
-    private LocalDate startInCemester;
+    @Column(name = "day_of_week", nullable = false)
+    private DayOfWeek dayOfWeek;
 
-    @Column(name = "end_in_cemester")
-    private LocalDate endInCemester;
+    @Column(name = "start_in_semester")
+    private LocalDate startInSemester;
+
+    @Column(name = "end_in_semester")
+    private LocalDate endInSemester;
+
+    @ManyToMany(mappedBy = "lessons")
+    private List<Professor> professors;
+
+    @ManyToMany(mappedBy = "lessons")
+    private List<Group> groups;
 
     @ManyToOne
     @JoinColumn(name = "location_id", nullable = false)

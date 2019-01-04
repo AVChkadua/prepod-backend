@@ -21,6 +21,10 @@ public class Attendance {
     private LocalDate date;
 
     @ManyToOne
+    @JoinColumn(name = "lesson_id", nullable = false)
+    private Lesson lesson;
+
+    @ManyToOne
     @JoinColumn(name = "subject_id", nullable = false)
     private Subject subject;
 
