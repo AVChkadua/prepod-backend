@@ -1,6 +1,8 @@
 package ru.mephi.prepod.dto;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
+import ru.mephi.prepod.Views;
 
 import javax.persistence.*;
 import java.util.List;
@@ -22,11 +24,14 @@ public class Department {
 
     @ManyToOne
     @JoinColumn(name = "institute_id", nullable = false)
+    @JsonView(Views.Department.Full.class)
     private Institute institute;
 
     @OneToMany(mappedBy = "department")
+    @JsonView(Views.Department.Full.class)
     private List<Professor> professors;
 
     @OneToMany(mappedBy = "department")
+    @JsonView(Views.Department.Full.class)
     private List<Group> groups;
 }

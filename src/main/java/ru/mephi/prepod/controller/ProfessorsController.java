@@ -1,10 +1,12 @@
 package ru.mephi.prepod.controller;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Professor;
 import ru.mephi.prepod.dto.Subject;
 import ru.mephi.prepod.repo.ProfessorsRepository;
@@ -38,6 +40,7 @@ public class ProfessorsController {
     }
 
     @GetMapping("/{id}")
+    @JsonView(Views.Professor.Full.class)
     public Optional<Professor> getById(@PathVariable("id") String id) {
         return professorsRepo.findById(id);
     }
