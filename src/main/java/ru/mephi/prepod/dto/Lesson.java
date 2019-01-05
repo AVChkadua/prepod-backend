@@ -1,6 +1,8 @@
 package ru.mephi.prepod.dto;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
+import ru.mephi.prepod.Views;
 
 import javax.persistence.*;
 import java.time.DayOfWeek;
@@ -13,6 +15,7 @@ import java.util.List;
 public class Lesson {
 
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false)
     private String id;
 
@@ -32,17 +35,21 @@ public class Lesson {
     private LocalDate endInSemester;
 
     @ManyToMany(mappedBy = "lessons")
+    @JsonView(Views.Lesson.Full.class)
     private List<Professor> professors;
 
     @ManyToMany(mappedBy = "lessons")
+    @JsonView(Views.Lesson.Full.class)
     private List<Group> groups;
 
     @ManyToOne
     @JoinColumn(name = "location_id", nullable = false)
+    @JsonView(Views.Lesson.Full.class)
     private Location location;
 
     @ManyToOne
     @JoinColumn(name = "subject_id", nullable = false)
+    @JsonView(Views.Lesson.Full.class)
     private Subject subject;
 
     @ManyToOne

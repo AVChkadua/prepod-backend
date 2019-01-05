@@ -12,6 +12,7 @@ import javax.persistence.*;
 public class Student {
 
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false)
     private String id;
 

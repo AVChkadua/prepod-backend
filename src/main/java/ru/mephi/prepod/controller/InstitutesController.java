@@ -1,11 +1,10 @@
 package ru.mephi.prepod.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Institute;
 import ru.mephi.prepod.repo.InstitutesRepository;
@@ -16,6 +15,9 @@ import java.util.Optional;
 @RequestMapping("/institutes")
 public class InstitutesController {
 
+    private static final String ERROR = "error";
+    private static final String INSTITUTE_NOT_FOUND = "Institute with the specified id not found";
+
     private final InstitutesRepository institutesRepo;
 
     @Autowired
@@ -23,7 +25,7 @@ public class InstitutesController {
         this.institutesRepo = institutesRepo;
     }
 
-    @GetMapping("/list")
+    @GetMapping
     public Iterable<Institute> findAll() {
         return institutesRepo.findAll();
     }
@@ -32,5 +34,25 @@ public class InstitutesController {
     @JsonView(Views.Institute.Full.class)
     public Optional<Institute> findById(@PathVariable("id") String id) {
         return institutesRepo.findById(id);
+    }
+
+    @PostMapping
+    @JsonView(Views.Institute.Full.class)
+    public Institute create(@RequestBody Institute institute) {
+        return institutesRepo.save(institute);
+    }
+
+    @PutMapping
+    @JsonView(Views.Institute.Full.class)
+    public ResponseEntity update(@RequestBody Institute institute) {
+        if (!institutesRepo.existsById(institute.getId())) {
+            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, INSTITUTE_NOT_FOUND));
+        }
+        return ResponseEntity.ok(institutesRepo.save(institute));
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable("id") String id) {
+        institutesRepo.deleteById(id);
     }
 }

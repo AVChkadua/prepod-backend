@@ -13,6 +13,7 @@ import java.util.List;
 public class Group {
 
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false)
     private String id;
 
@@ -21,7 +22,7 @@ public class Group {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    @JsonView(Views.Group.Full.class)
+    @JsonView(Views.Group.WithParent.class)
     private Group parentGroup;
 
     @ManyToOne

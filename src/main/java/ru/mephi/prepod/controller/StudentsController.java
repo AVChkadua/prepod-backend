@@ -1,10 +1,13 @@
 package ru.mephi.prepod.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Student;
+import ru.mephi.prepod.repo.GroupsRepository;
 import ru.mephi.prepod.repo.StudentsRepository;
 
 import java.util.List;
@@ -14,11 +17,18 @@ import java.util.Optional;
 @RequestMapping("/students")
 public class StudentsController {
 
+    private static final String ERROR = "error";
+    private static final String GROUP_NOT_FOUND = "Group not found";
+    private static final String STUDENT_NOT_FOUND = "Student not found";
+
     private final StudentsRepository studentsRepo;
 
+    private final GroupsRepository groupsRepo;
+
     @Autowired
-    public StudentsController(StudentsRepository studentsRepo) {
+    public StudentsController(StudentsRepository studentsRepo, GroupsRepository groupsRepo) {
         this.studentsRepo = studentsRepo;
+        this.groupsRepo = groupsRepo;
     }
 
     @GetMapping("/byGroup")
@@ -30,5 +40,34 @@ public class StudentsController {
     @JsonView(Views.Student.Full.class)
     public Optional<Student> findById(@PathVariable("id") String id) {
         return studentsRepo.findById(id);
+    }
+
+    @PostMapping
+    @JsonView(Views.Student.Full.class)
+    public ResponseEntity create(@RequestBody Student student) {
+        if (!groupsRepo.existsById(student.getGroup().getId())) {
+            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
+        }
+
+        return ResponseEntity.ok(studentsRepo.save(student));
+    }
+
+    @PutMapping
+    @JsonView(Views.Student.Full.class)
+    public ResponseEntity update(@RequestBody Student student) {
+        if (!studentsRepo.existsById(student.getId())) {
+            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_NOT_FOUND));
+        }
+
+        if (!groupsRepo.existsById(student.getGroup().getId())) {
+            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
+        }
+
+        return ResponseEntity.ok(studentsRepo.save(student));
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable("id") String id) {
+        studentsRepo.deleteById(id);
     }
 }

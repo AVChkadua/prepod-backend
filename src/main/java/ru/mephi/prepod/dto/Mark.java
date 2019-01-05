@@ -11,6 +11,7 @@ import java.time.LocalDate;
 public class Mark {
 
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false)
     private String id;
 

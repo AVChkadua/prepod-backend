@@ -7,11 +7,19 @@ public interface Views {
     }
 
     interface Group {
-        interface Full {
+        interface WithParent {
+        }
+
+        interface Full extends WithParent {
         }
     }
 
     interface Institute {
+        interface Full {
+        }
+    }
+
+    interface Lesson {
         interface Full {
         }
     }

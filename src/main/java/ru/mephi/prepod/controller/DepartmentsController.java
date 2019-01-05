@@ -1,7 +1,9 @@
 package ru.mephi.prepod.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Department;
@@ -14,6 +16,9 @@ import java.util.Optional;
 @RequestMapping("/departments")
 public class DepartmentsController {
 
+    private static final String ERROR = "error";
+    private static final String DEPARTMENT_NOT_FOUND = "The department with the specified id is not found";
+
     private final DepartmentsRepository departmentsRepo;
 
     @Autowired
@@ -21,7 +26,7 @@ public class DepartmentsController {
         this.departmentsRepo = departmentsRepo;
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public Iterable<Department> getAll() {
         return departmentsRepo.findAll();
     }
@@ -35,5 +40,25 @@ public class DepartmentsController {
     @JsonView(Views.Department.Full.class)
     public Optional<Department> getById(@PathVariable("id") String id) {
         return departmentsRepo.findById(id);
+    }
+
+    @PostMapping
+    @JsonView(Views.Department.Full.class)
+    public Department create(@RequestBody Department department) {
+        return departmentsRepo.save(department);
+    }
+
+    @PutMapping
+    @JsonView(Views.Department.Full.class)
+    public ResponseEntity update(@RequestBody Department department) {
+        if (!departmentsRepo.existsById(department.getId())) {
+            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, DEPARTMENT_NOT_FOUND));
+        }
+        return ResponseEntity.ok(departmentsRepo.save(department));
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable("id") String id) {
+        departmentsRepo.deleteById(id);
     }
 }

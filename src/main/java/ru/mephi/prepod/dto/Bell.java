@@ -2,10 +2,7 @@ package ru.mephi.prepod.dto;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalTime;
 
 @Entity
@@ -14,6 +11,7 @@ import java.time.LocalTime;
 public class Bell {
 
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false)
     private String id;
 

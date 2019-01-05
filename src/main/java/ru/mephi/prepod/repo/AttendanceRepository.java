@@ -10,16 +10,14 @@ import java.util.List;
 
 public interface AttendanceRepository extends CrudRepository<Attendance, String> {
 
-    @Query("from Attendance a join Student s join Group g " +
-           "where g.id = :groupId and a.date = :date and a.lesson.startBell.time = :startTime " +
-           "and a.lesson.endBell.time = :endTime")
-    List<Attendance> findAllByDateAndSubjectIdAndGroupId(@Param("date") LocalDate date,
-                                                         @Param("startTime") String startTime,
-                                                         @Param("endTime") String endTime,
-                                                         @Param("groupId") String groupId);
+    @Query("from Attendance a join Student s join Group g join Lesson l " +
+           "where g.id = :groupId and a.date = :date and l.id = :lessonId")
+    List<Attendance> findAllByDateAndLessonIdAndGroupId(@Param("date") LocalDate date,
+                                                        @Param("lessonId") String lessonId,
+                                                        @Param("groupId") String groupId);
 
-    @Query("from Attendance a join Student s join Group g join Subject subj " +
-           "where g.id = :groupId and subj.id = :subjectId")
-    List<Attendance> findAllBySubjectIdAndGroupId(@Param("subjectId") String subjectId,
-                                                  @Param("groupId") String groupId);
+    @Query("from Attendance a join Student s join Group g join Lesson l " +
+           "where g.id = :groupId and l.id = :lessonId")
+    List<Attendance> findAllByLessonIdAndGroupId(@Param("lessonId") String lessonId,
+                                                 @Param("groupId") String groupId);
 }

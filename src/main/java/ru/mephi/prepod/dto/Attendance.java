@@ -11,6 +11,7 @@ import java.time.LocalDate;
 public class Attendance {
 
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false)
     private String id;
 
@@ -23,10 +24,6 @@ public class Attendance {
     @ManyToOne
     @JoinColumn(name = "lesson_id", nullable = false)
     private Lesson lesson;
-
-    @ManyToOne
-    @JoinColumn(name = "subject_id", nullable = false)
-    private Subject subject;
 
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)

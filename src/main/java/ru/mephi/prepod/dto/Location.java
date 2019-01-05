@@ -13,6 +13,7 @@ import java.util.List;
 public class Location {
 
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false)
     private String id;
 
