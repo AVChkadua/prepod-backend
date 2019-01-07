@@ -8,8 +8,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.dto.Group;
 import ru.mephi.prepod.repo.GroupsRepository;
 import ru.mephi.prepod.repo.StudentsRepository;
@@ -47,7 +47,7 @@ public class GroupsController {
     @GetMapping("/{id}")
     @JsonView(Views.Group.Full.class)
     public Optional<Group> getById(@PathVariable("id") String groupId) {
-        Optional<Group> group =  groupsRepo.findById(groupId);
+        Optional<Group> group = groupsRepo.findById(groupId);
         if (group.isPresent() && group.get().getStudents().isEmpty()) {
             group.get().setStudents(Sets.newHashSet(studentsRepo.findAllByGroupId(groupId)));
         }

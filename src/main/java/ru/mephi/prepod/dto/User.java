@@ -1,16 +1,18 @@
 package ru.mephi.prepod.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import ru.mephi.prepod.Views;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
 @Data
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+@JsonView(Views.Professor.Full.class)
 public class User {
 
     @Id
@@ -22,10 +24,6 @@ public class User {
     private String username;
 
     @Column(name = "password", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
-
-    @ManyToMany
-    @JoinTable(name = "users_roles")
-    @EqualsAndHashCode.Exclude
-    private Set<Role> roles;
 }

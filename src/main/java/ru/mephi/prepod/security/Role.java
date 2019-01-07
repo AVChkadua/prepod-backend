@@ -1,7 +1,7 @@
 package ru.mephi.prepod.security;
 
-public enum Role {
-    ADMIN,
-    PROFESSOR,
-    HEAD_OF_DEPARTMENT
+public interface Role {
+    String ADMIN = "ADMIN";
+    String PROFESSOR = "PROFESSOR";
+    String HEAD_OF_DEPARTMENT = "HEAD_OF_DEPARTMENT";
 }

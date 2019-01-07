@@ -3,6 +3,7 @@ package ru.mephi.prepod.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -12,6 +13,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;
@@ -23,7 +25,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.jdbcAuthentication()
+        auth
+                .jdbcAuthentication()
                 .usersByUsernameQuery("SELECT username, password, TRUE enabled FROM users WHERE username = ?")
                 .authoritiesByUsernameQuery("SELECT u.username, ur.role_id authority FROM users u " +
                                             "JOIN users_roles ur ON u.id = ur.user_id " +
@@ -34,8 +37,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        String[] roles = new String[] { Role.ADMIN.name(), Role.HEAD_OF_DEPARTMENT.name(), Role.PROFESSOR.name() };
         http
+                .csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/security",
                         "/swagger-ui.html", "/webjars/**")

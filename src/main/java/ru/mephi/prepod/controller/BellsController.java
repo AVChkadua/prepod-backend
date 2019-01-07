@@ -29,19 +29,19 @@ public class BellsController {
 
     @PostMapping
     @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
-    private Iterable<Bell> save(@RequestBody List<Bell> bells) {
+    public Iterable<Bell> save(@RequestBody List<Bell> bells) {
         return bellsRepo.saveAll(bells);
     }
 
     @PutMapping
     @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
-    private Iterable<Bell> update(@RequestBody List<Bell> bells) {
+    public Iterable<Bell> update(@RequestBody List<Bell> bells) {
         return bellsRepo.saveAll(bells);
     }
 
     @DeleteMapping
     @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
-    private void delete(@RequestBody List<String> ids) {
+    public void delete(@RequestBody List<String> ids) {
         ids.forEach(bellsRepo::deleteById);
     }
 

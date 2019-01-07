@@ -7,12 +7,15 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.dto.Position;
 import ru.mephi.prepod.dto.Professor;
 import ru.mephi.prepod.dto.Subject;
-import ru.mephi.prepod.repo.*;
+import ru.mephi.prepod.repo.DepartmentsRepository;
+import ru.mephi.prepod.repo.PositionsRepository;
+import ru.mephi.prepod.repo.ProfessorsRepository;
+import ru.mephi.prepod.repo.SubjectsRepository;
 
 import java.util.List;
 import java.util.Optional;

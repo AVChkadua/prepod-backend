@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import ru.mephi.prepod.Views;
 import ru.mephi.prepod.common.LocalDateDeserializer;
 import ru.mephi.prepod.common.LocalDateSerializer;
-import ru.mephi.prepod.Views;
 
 import javax.persistence.*;
 import java.time.DayOfWeek;

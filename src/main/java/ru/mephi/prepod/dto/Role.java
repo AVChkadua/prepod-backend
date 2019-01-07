@@ -1,10 +1,8 @@
 package ru.mephi.prepod.dto;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Entity
 @Table(name = "roles")
@@ -18,14 +16,4 @@ public class Role {
 
     @Column(name = "name", nullable = false, unique = true)
     private String name;
-
-    @ManyToMany
-    @JoinTable(name = "roles_privileges")
-    @EqualsAndHashCode.Exclude
-    private Set<Privilege> privileges;
-
-    @ManyToMany
-    @JoinTable(name = "roles_activities")
-    @EqualsAndHashCode.Exclude
-    private Set<Activity> activities;
 }
