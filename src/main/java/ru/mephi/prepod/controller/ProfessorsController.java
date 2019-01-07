@@ -3,14 +3,15 @@ package ru.mephi.prepod.controller;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
+import ru.mephi.prepod.dto.Position;
 import ru.mephi.prepod.dto.Professor;
 import ru.mephi.prepod.dto.Subject;
-import ru.mephi.prepod.repo.DepartmentsRepository;
-import ru.mephi.prepod.repo.ProfessorsRepository;
-import ru.mephi.prepod.repo.SubjectsRepository;
+import ru.mephi.prepod.repo.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,24 +22,27 @@ public class ProfessorsController {
 
     private static final String ERROR = "error";
     private static final String DEPARTMENT_NOT_FOUND = "Department not found";
+    private static final String POSITION_NOT_FOUND = "Position not found";
     private static final String PROFESSOR_NOT_FOUND = "Professor not found";
 
     private final ProfessorsRepository professorsRepo;
-
     private final SubjectsRepository subjectsRepo;
-
     private final DepartmentsRepository departmentsRepo;
+    private final PositionsRepository positionsRepository;
 
     @Autowired
     public ProfessorsController(ProfessorsRepository professorsRepo, SubjectsRepository subjectsRepo,
-                                DepartmentsRepository departmentsRepo) {
+                                DepartmentsRepository departmentsRepo,
+                                PositionsRepository positionsRepository, UsersRepository usersRepo) {
         this.professorsRepo = professorsRepo;
         this.subjectsRepo = subjectsRepo;
         this.departmentsRepo = departmentsRepo;
+        this.positionsRepository = positionsRepository;
     }
 
     @GetMapping
-    public Iterable<Professor> getProfessorsList() {
+    @JsonView(Views.Professor.Basic.class)
+    public Iterable<Professor> getAll() {
         return professorsRepo.findAll();
     }
 
@@ -60,6 +64,12 @@ public class ProfessorsController {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, DEPARTMENT_NOT_FOUND));
         }
 
+        if (professor.getPositions().stream()
+                .map(Position::getId)
+                .anyMatch(id -> !positionsRepository.existsById(id))) {
+            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, POSITION_NOT_FOUND));
+        }
+
         return ResponseEntity.ok(professorsRepo.save(professor));
     }
 
@@ -77,8 +87,13 @@ public class ProfessorsController {
         return ResponseEntity.ok(professorsRepo.save(professor));
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") String id) {
-        professorsRepo.deleteById(id);
+    @DeleteMapping
+    public void delete(@RequestBody List<String> ids) {
+        ids.forEach(professorsRepo::deleteById);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
 }

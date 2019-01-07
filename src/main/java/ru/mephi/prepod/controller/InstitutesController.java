@@ -3,12 +3,15 @@ package ru.mephi.prepod.controller;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Institute;
 import ru.mephi.prepod.repo.InstitutesRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -26,13 +29,14 @@ public class InstitutesController {
     }
 
     @GetMapping
-    public Iterable<Institute> findAll() {
+    @JsonView(Views.Institute.Basic.class)
+    public Iterable<Institute> getAll() {
         return institutesRepo.findAll();
     }
 
     @GetMapping("/{id}")
     @JsonView(Views.Institute.Full.class)
-    public Optional<Institute> findById(@PathVariable("id") String id) {
+    public Optional<Institute> getById(@PathVariable("id") String id) {
         return institutesRepo.findById(id);
     }
 
@@ -51,8 +55,13 @@ public class InstitutesController {
         return ResponseEntity.ok(institutesRepo.save(institute));
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") String id) {
-        institutesRepo.deleteById(id);
+    @DeleteMapping
+    public void delete(@RequestBody List<String> ids) {
+        ids.forEach(institutesRepo::deleteById);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
 }

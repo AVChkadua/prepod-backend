@@ -3,8 +3,10 @@ package ru.mephi.prepod.controller;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Department;
 import ru.mephi.prepod.repo.DepartmentsRepository;
@@ -27,12 +29,14 @@ public class DepartmentsController {
     }
 
     @GetMapping
+    @JsonView(Views.Department.Basic.class)
     public Iterable<Department> getAll() {
         return departmentsRepo.findAll();
     }
 
     @GetMapping("/byInstitute")
-    public List<Department> findByInstitute(@RequestParam("insituteId") String instituteId) {
+    @JsonView(Views.Department.Basic.class)
+    public List<Department> getByInstitute(@RequestParam("insituteId") String instituteId) {
         return departmentsRepo.findAllByInstituteId(instituteId);
     }
 
@@ -57,8 +61,13 @@ public class DepartmentsController {
         return ResponseEntity.ok(departmentsRepo.save(department));
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") String id) {
-        departmentsRepo.deleteById(id);
+    @DeleteMapping
+    public void delete(@RequestBody List<String> ids) {
+        ids.forEach(departmentsRepo::deleteById);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
 }

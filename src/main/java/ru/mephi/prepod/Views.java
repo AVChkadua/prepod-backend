@@ -1,13 +1,22 @@
 package ru.mephi.prepod;
 
 public interface Views {
+    interface Bell {
+    }
+
     interface Department {
-        interface Full {
+        interface Basic {
+        }
+
+        interface Full extends Basic {
         }
     }
 
     interface Group {
-        interface WithParent {
+        interface Basic {
+        }
+
+        interface WithParent extends Basic {
         }
 
         interface Full extends WithParent {
@@ -15,27 +24,53 @@ public interface Views {
     }
 
     interface Institute {
-        interface Full {
+        interface Basic {
+        }
+
+        interface Full extends Basic {
         }
     }
 
     interface Lesson {
-        interface Full {
+        interface Basic {
+        }
+
+        interface Full extends Basic {
         }
     }
 
     interface Location {
-        interface Full {
+        interface Basic {
+        }
+
+        interface Full extends Basic {
+        }
+    }
+
+    interface Position {
+        interface Basic {
+        }
+
+        interface Full extends Basic {
         }
     }
 
     interface Professor {
-        interface Full {
+        interface Basic {
+        }
+
+        interface Full extends Basic {
         }
     }
 
     interface Student {
-        interface Full {
+        interface Basic {
         }
+
+        interface Full extends Basic {
+        }
+    }
+
+    interface Subject {
     }
 }

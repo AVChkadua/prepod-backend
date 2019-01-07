@@ -1,9 +1,10 @@
 package ru.mephi.prepod.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "roles")
@@ -11,18 +12,20 @@ import java.util.List;
 public class Role {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private String id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @ManyToMany
     @JoinTable(name = "roles_privileges")
-    private List<Privilege> privileges;
+    @EqualsAndHashCode.Exclude
+    private Set<Privilege> privileges;
 
     @ManyToMany
     @JoinTable(name = "roles_activities")
-    private List<Activity> activities;
+    @EqualsAndHashCode.Exclude
+    private Set<Activity> activities;
 }

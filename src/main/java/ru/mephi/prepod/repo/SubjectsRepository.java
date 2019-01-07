@@ -9,6 +9,11 @@ import java.util.List;
 
 public interface SubjectsRepository extends CrudRepository<Subject, String> {
 
-    @Query("from Subject s join Lesson l join Professor p where p.id = :professorId")
+    @Query(value = "SELECT DISTINCT s.* FROM subjects s " +
+                   "JOIN lessons l on s.id = l.subject_id " +
+                   "JOIN professors_lessons pl ON l.id = pl.lesson_id " +
+                   "JOIN professors p ON pl.professor_id = p.id " +
+                   "WHERE p.id = :professorId",
+           nativeQuery = true)
     List<Subject> findAllByProfessorId(@Param("professorId") String professorId);
 }

@@ -1,7 +1,10 @@
 package ru.mephi.prepod.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
 import ru.mephi.prepod.dto.Bell;
 import ru.mephi.prepod.repo.BellsRepository;
 
@@ -19,7 +22,7 @@ public class BellsController {
     }
 
     @GetMapping
-    private Iterable<Bell> getBells() {
+    private Iterable<Bell> getAll() {
         return bellsRepo.findAll();
     }
 
@@ -34,7 +37,12 @@ public class BellsController {
     }
 
     @DeleteMapping
-    private void delete(@RequestBody List<Bell> bells) {
-        bellsRepo.deleteAll(bells);
+    private void delete(@RequestBody List<String> ids) {
+        ids.forEach(bellsRepo::deleteById);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
 }

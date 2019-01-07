@@ -2,17 +2,19 @@ package ru.mephi.prepod.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.*;
 import ru.mephi.prepod.repo.*;
 
-import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -22,7 +24,7 @@ public class LessonsController {
     private static final String ERROR = "error";
     private static final String LESSON_NOT_FOUND = "Lesson not found";
     private static final String PROFESSOR_NOT_FOUND = "Professor not found";
-    private static final String BELL_NOT_FOUND = "Bell for the specified time not found";
+    private static final String BELL_NOT_FOUND = "Bell not found";
     private static final String GROUP_NOT_FOUND = "Group not found";
     private static final String LOCATION_NOT_FOUND = "Location not found";
     private static final String SUBJECT_NOT_FOUND = "Subject not found";
@@ -54,13 +56,13 @@ public class LessonsController {
 
     @GetMapping("/group/{id}")
     @JsonView(Views.Lesson.Full.class)
-    public Iterable<Lesson> getGroupTimetable(@PathVariable("id") String groupId) {
+    public Iterable<Lesson> getByGroupId(@PathVariable("id") String groupId) {
         return lessonsRepo.findAllByGroupId(groupId);
     }
 
     @GetMapping("/professor/{id}")
     @JsonView(Views.Lesson.Full.class)
-    public Iterable<Lesson> getProfessorTimetable(@PathVariable("id") String professorId) {
+    public Iterable<Lesson> getByProfessorId(@PathVariable("id") String professorId) {
         return lessonsRepo.findAllByProfessorId(professorId);
     }
 
@@ -69,33 +71,35 @@ public class LessonsController {
     public ResponseEntity create(@RequestBody List<Lesson> lessons) {
         List<Professor> professors = lessons.stream()
                 .map(Lesson::getProfessors)
-                .flatMap(List::stream)
+                .flatMap(Set::stream)
                 .collect(Collectors.toList());
         if (professors.stream().map(Professor::getId).anyMatch(id -> !professorsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PROFESSOR_NOT_FOUND));
         }
 
-        List<LocalTime> startTimes = lessons.stream()
+        List<String> startIds = lessons.stream()
                 .map(Lesson::getStartBell)
-                .map(Bell::getTime)
+                .map(Bell::getId)
+                .distinct()
                 .collect(Collectors.toList());
-        List<LocalTime> endTimes = lessons.stream()
+        List<String> endIds = lessons.stream()
                 .map(Lesson::getEndBell)
-                .map(Bell::getTime)
+                .map(Bell::getId)
+                .distinct()
                 .collect(Collectors.toList());
-        Map<LocalTime, Bell> startBells = getBells(startTimes);
-        Map<LocalTime, Bell> endBells = getBells(endTimes);
+        List<Bell> startBells = Lists.newArrayList(bellsRepository.findAllById(startIds));
+        List<Bell> endBells = Lists.newArrayList(bellsRepository.findAllById(endIds));
 
-        if (startBells.size() != startTimes.size() || endBells.size() != endTimes.size()) {
+        if (startBells.size() != startIds.size() || endBells.size() != endIds.size()) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_NOT_FOUND));
-        } else if (startBells.values().stream().anyMatch(b -> !b.getIsOpening())
-                   || endBells.values().stream().anyMatch(Bell::getIsOpening)) {
+        } else if (startBells.stream().anyMatch(b -> !b.getIsOpening())
+                   || endBells.stream().anyMatch(Bell::getIsOpening)) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_MISUSE));
         }
 
         if (lessons.stream()
                 .map(Lesson::getGroups)
-                .flatMap(List::stream)
+                .flatMap(Set::stream)
                 .map(Group::getId)
                 .anyMatch(id -> !groupsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
@@ -119,6 +123,7 @@ public class LessonsController {
     }
 
     @PutMapping
+    @JsonView(Views.Lesson.Full.class)
     public ResponseEntity update(@RequestBody List<Lesson> lessons) {
         if (lessons.stream().map(Lesson::getId).anyMatch(id -> !lessonsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, LESSON_NOT_FOUND));
@@ -126,33 +131,35 @@ public class LessonsController {
 
         List<Professor> professors = lessons.stream()
                 .map(Lesson::getProfessors)
-                .flatMap(List::stream)
+                .flatMap(Set::stream)
                 .collect(Collectors.toList());
         if (professors.stream().map(Professor::getId).anyMatch(id -> !professorsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PROFESSOR_NOT_FOUND));
         }
 
-        List<LocalTime> startTimes = lessons.stream()
+        List<String> startIds = lessons.stream()
                 .map(Lesson::getStartBell)
-                .map(Bell::getTime)
+                .map(Bell::getId)
+                .distinct()
                 .collect(Collectors.toList());
-        List<LocalTime> endTimes = lessons.stream()
+        List<String> endIds = lessons.stream()
                 .map(Lesson::getEndBell)
-                .map(Bell::getTime)
+                .map(Bell::getId)
+                .distinct()
                 .collect(Collectors.toList());
-        Map<LocalTime, Bell> startBells = getBells(startTimes);
-        Map<LocalTime, Bell> endBells = getBells(endTimes);
+        List<Bell> startBells = Lists.newArrayList(bellsRepository.findAllById(startIds));
+        List<Bell> endBells = Lists.newArrayList(bellsRepository.findAllById(endIds));
 
-        if (startBells.size() != startTimes.size() || endBells.size() != endTimes.size()) {
+        if (startBells.size() != startIds.size() || endBells.size() != endIds.size()) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_NOT_FOUND));
-        } else if (startBells.values().stream().anyMatch(b -> !b.getIsOpening())
-                   || endBells.values().stream().anyMatch(Bell::getIsOpening)) {
+        } else if (startBells.stream().anyMatch(b -> !b.getIsOpening())
+                   || endBells.stream().anyMatch(Bell::getIsOpening)) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_MISUSE));
         }
 
         if (lessons.stream()
                 .map(Lesson::getGroups)
-                .flatMap(List::stream)
+                .flatMap(Set::stream)
                 .map(Group::getId)
                 .anyMatch(id -> !groupsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
@@ -180,8 +187,9 @@ public class LessonsController {
         ids.forEach(lessonsRepo::deleteById);
     }
 
-    private Map<LocalTime, Bell> getBells(List<LocalTime> times) {
-        return bellsRepository.findAllByTimeIn(times).stream()
-                .collect(Collectors.toMap(Bell::getTime, Function.identity()));
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
+
 }

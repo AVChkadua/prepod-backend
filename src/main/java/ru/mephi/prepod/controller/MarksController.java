@@ -3,9 +3,13 @@ package ru.mephi.prepod.controller;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.dto.Group;
 import ru.mephi.prepod.dto.Mark;
 import ru.mephi.prepod.dto.Student;
 import ru.mephi.prepod.dto.Subject;
@@ -52,30 +56,30 @@ public class MarksController {
         this.groupsRepo = groupsRepo;
     }
 
-    @GetMapping("/forNameAndSubjectAndGroup")
-    public GroupMarks getByNameAndSubjectAndGroup(@RequestParam("name") String name,
-                                                  @RequestParam("subjectId") String subjectId,
-                                                  @RequestParam("groupId") String groupId) {
+    @GetMapping("/byNameAndSubjectAndGroup")
+    public Marks getByNameAndSubjectAndGroup(@RequestParam("name") String name,
+                                             @RequestParam("subjectId") String subjectId,
+                                             @RequestParam("groupId") String groupId) {
         List<Mark> all = marksRepo.findAllByNameAndSubjectAndGroupId(name, subjectId, groupId);
         Map<String, Integer> marks = all.stream()
                 .collect(Collectors.toMap(m -> m.getStudent().getId(), m -> Integer.valueOf(m.getMark())));
-        return new GroupMarks(all.get(0).getName(),
+        return new Marks(all.get(0).getName(),
                 all.get(0).getStudent().getGroup().getId(),
                 all.get(0).getSubject().getId(),
                 all.get(0).getDate(),
                 marks);
     }
 
-    @GetMapping("/forSubjectAndGroup")
-    public List<GroupMarks> getAllForGroup(@RequestParam("subjectId") String subjectId,
-                                           @RequestParam("groupId") String groupId) {
-        List<GroupMarks> list = new ArrayList<>();
+    @GetMapping("/bySubjectAndGroup")
+    public List<Marks> getBySubjectAndGroup(@RequestParam("subjectId") String subjectId,
+                                            @RequestParam("groupId") String groupId) {
+        List<Marks> list = new ArrayList<>();
         List<Mark> all = marksRepo.findAllBySubjectIdAndGroupId(subjectId, groupId);
         Map<String, List<Mark>> byName = all.stream().collect(Collectors.groupingBy(Mark::getName));
         for (List<Mark> marks : byName.values()) {
             Map<String, Integer> byStudentId = marks.stream()
                     .collect(Collectors.toMap(m -> m.getStudent().getId(), m -> Integer.valueOf(m.getMark())));
-            list.add(new GroupMarks(marks.get(0).getName(),
+            list.add(new Marks(marks.get(0).getName(),
                     all.get(0).getStudent().getGroup().getId(),
                     all.get(0).getSubject().getId(),
                     marks.get(0).getDate(), byStudentId));
@@ -84,8 +88,9 @@ public class MarksController {
     }
 
     @PostMapping
-    public ResponseEntity create(@RequestBody GroupMarks marks) {
-        if (!groupsRepo.existsById(marks.getGroupId())) {
+    public ResponseEntity create(@RequestBody Marks marks) {
+        Optional<Group> group = groupsRepo.findById(marks.getGroupId());
+        if (!group.isPresent()) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
         }
 
@@ -101,7 +106,7 @@ public class MarksController {
         Map<String, Student> students = studentsRepo.findAllByGroupId(marks.getGroupId()).stream()
                 .collect(Collectors.toMap(Student::getId, Function.identity()));
         if (students.size() < marks.getMarks().keySet().size()
-            || students.keySet().containsAll(marks.getMarks().keySet())) {
+            || !students.keySet().containsAll(marks.getMarks().keySet())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_GROUP_MISMATCH));
         }
 
@@ -124,11 +129,12 @@ public class MarksController {
             toSave.add(dto);
         }
 
-        return ResponseEntity.ok(marksRepo.saveAll(toSave));
+        marksRepo.saveAll(toSave);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping
-    public ResponseEntity update(@RequestBody GroupMarks newMarks) {
+    public ResponseEntity update(@RequestBody Marks newMarks) {
 
         Map<String, Mark> marks = marksRepo.findAllByNameAndSubjectAndGroupId(newMarks.getName(),
                 newMarks.getSubjectId(), newMarks.getGroupId()).stream()
@@ -150,7 +156,7 @@ public class MarksController {
         Map<String, Student> students = studentsRepo.findAllByGroupId(newMarks.getGroupId()).stream()
                 .collect(Collectors.toMap(Student::getId, Function.identity()));
         if (students.size() < newMarks.getMarks().keySet().size()
-            || students.keySet().containsAll(newMarks.getMarks().keySet())) {
+            || !students.keySet().containsAll(newMarks.getMarks().keySet())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_GROUP_MISMATCH));
         }
 
@@ -165,20 +171,29 @@ public class MarksController {
         List<Mark> toSave = new ArrayList<>();
         for (Map.Entry<String, Integer> mark : newMarks.getMarks().entrySet()) {
             Mark dto = marks.get(mark.getKey());
-            dto.setDate(newMarks.getDate());
-            dto.setStudent(students.get(mark.getKey()));
-            dto.setMark(Character.forDigit(mark.getValue(), 10));
-            dto.setName(newMarks.getName());
-            dto.setSubject(subject.get());
-            toSave.add(dto);
+            if (dto != null) {
+                dto.setDate(newMarks.getDate());
+                dto.setStudent(students.get(mark.getKey()));
+                dto.setMark(Character.forDigit(mark.getValue(), 10));
+                dto.setName(newMarks.getName());
+                dto.setSubject(subject.get());
+                toSave.add(dto);
+            }
         }
 
-        return ResponseEntity.ok(marksRepo.saveAll(toSave));
+        marksRepo.saveAll(toSave);
+        return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
-    private static class GroupMarks {
+    private static class Marks {
         private String name;
         private String groupId;
         private String subjectId;

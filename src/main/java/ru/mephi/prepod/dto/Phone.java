@@ -1,5 +1,6 @@
 package ru.mephi.prepod.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -7,10 +8,11 @@ import javax.persistence.*;
 @Entity
 @Table(name = "phones")
 @Data
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Phone {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private String id;
 

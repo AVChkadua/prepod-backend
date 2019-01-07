@@ -10,15 +10,28 @@ import java.util.List;
 
 public interface LessonsRepository extends CrudRepository<Lesson, String> {
 
-    @Query("from Lesson l join Group g where g.id = :groupId")
+    @Query(value = "SELECT l.* FROM lessons l " +
+                   "JOIN groups_lessons gl ON gl.lesson_id = l.id " +
+                   "JOIN groups g ON gl.group_id = g.id " +
+                   "WHERE g.id = :groupId OR (g.parent_id IS NOT NULL AND g.parent_id = :groupId)",
+           nativeQuery = true)
     List<Lesson> findAllByGroupId(@Param("groupId") String groupId);
 
-    @Query("from Lesson l join Professor p where p.id = :professorId")
+    @Query(value = "SELECT l.* FROM lessons l " +
+                   "JOIN professors_lessons pl on l.id = pl.lesson_id " +
+                   "JOIN professors p ON pl.professor_id = p.id " +
+                   "WHERE p.id = :professorId",
+           nativeQuery = true)
     List<Lesson> findAllByProfessorId(@Param("professorId") String professorId);
 
-    @Query("from Lesson l join Group g where l.subject.id = :subjectId and g.id = :groupId " +
-           "and ((l.startInSemester is null and l.endInSemester is null) or " +
-           "(:date between l.startInSemester and l.endInSemester)) ")
+    @Query(value = "SELECT * FROM lessons l " +
+                   "JOIN subjects s on l.subject_id = s.id " +
+                   "JOIN groups_lessons gl on l.id = gl.lesson_id " +
+                   "JOIN groups g on gl.group_id = g.id " +
+                   "WHERE s.id = :subjectId AND (g.id = :groupId OR g.parent_id = :groupId) " +
+                   "AND ((l.start_in_semester is null and l.end_in_semester is null) or " +
+                   "(:date between l.start_in_semester and l.end_in_semester)) ",
+           nativeQuery = true)
     List<Lesson> findBySubjectIdAndDateAndGroupId(@Param("subjectId") String subjectId, @Param("date") LocalDate date,
                                                   @Param("groupId") String groupId);
 }

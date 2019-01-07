@@ -2,12 +2,19 @@ package ru.mephi.prepod.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+import org.hibernate.exception.ConstraintViolationException;
+import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Group;
 import ru.mephi.prepod.repo.GroupsRepository;
+import ru.mephi.prepod.repo.StudentsRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,24 +23,37 @@ import java.util.Optional;
 @RequestMapping("/groups")
 public class GroupsController {
 
-    public static final String GROUP_NOT_FOUND = "Group with the specified id not found";
-    public static final String ERROR = "error";
+    private static final String GROUP_NOT_FOUND = "Group with the specified id not found";
+    private static final String ERROR = "error";
     private final GroupsRepository groupsRepo;
+    private final StudentsRepository studentsRepo;
 
     @Autowired
-    public GroupsController(GroupsRepository groupsRepo) {
+    public GroupsController(GroupsRepository groupsRepo, StudentsRepository studentsRepo) {
         this.groupsRepo = groupsRepo;
+        this.studentsRepo = studentsRepo;
     }
 
     @GetMapping
-    public List<Group> getAll() {
+    @JsonView(Views.Group.WithParent.class)
+    public Iterable<Group> getAll() {
+        return groupsRepo.findAll();
+    }
+
+    @GetMapping("/parent")
+    @JsonView(Views.Group.Basic.class)
+    public List<Group> parentOnly() {
         return groupsRepo.findAllByParentGroupIsNull();
     }
 
     @GetMapping("/{id}")
     @JsonView(Views.Group.Full.class)
     public Optional<Group> getById(@PathVariable("id") String groupId) {
-        return groupsRepo.findById(groupId);
+        Optional<Group> group =  groupsRepo.findById(groupId);
+        if (group.isPresent() && group.get().getStudents().isEmpty()) {
+            group.get().setStudents(Sets.newHashSet(studentsRepo.findAllByGroupId(groupId)));
+        }
+        return group;
     }
 
     @PostMapping
@@ -51,8 +71,13 @@ public class GroupsController {
         return ResponseEntity.ok(groupsRepo.save(group));
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") String id) {
-        groupsRepo.deleteById(id);
+    @DeleteMapping
+    public void delete(@RequestBody List<String> ids) {
+        ids.forEach(groupsRepo::deleteById);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
 }

@@ -57,6 +57,8 @@ dependencies {
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: springBootVersion
     compile group: 'org.projectlombok', name: 'lombok', version: '1.18.4'
     compile group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
+    compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
+    compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
 
     // Use JUnit test framework
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion

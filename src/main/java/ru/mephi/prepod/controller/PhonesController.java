@@ -2,10 +2,14 @@ package ru.mephi.prepod.controller;
 
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
 import ru.mephi.prepod.dto.Phone;
 import ru.mephi.prepod.repo.PhonesRepository;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/phones")
@@ -22,7 +26,7 @@ public class PhonesController {
     }
 
     @GetMapping
-    public Iterable<Phone> getPhones() {
+    public Iterable<Phone> getAll() {
         return phonesRepo.findAll();
     }
 
@@ -38,5 +42,15 @@ public class PhonesController {
         }
 
         return ResponseEntity.ok(phonesRepo.save(phone));
+    }
+
+    @DeleteMapping
+    public void delete(@RequestBody List<String> ids) {
+        ids.forEach(phonesRepo::deleteById);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
 }

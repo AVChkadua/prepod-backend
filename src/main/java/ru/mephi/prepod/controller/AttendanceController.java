@@ -4,8 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.mephi.prepod.DatabaseExceptionHandler;
 import ru.mephi.prepod.dto.Attendance;
 import ru.mephi.prepod.dto.Lesson;
 import ru.mephi.prepod.dto.Student;
@@ -14,7 +17,10 @@ import ru.mephi.prepod.repo.LessonsRepository;
 import ru.mephi.prepod.repo.StudentsRepository;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -23,6 +29,7 @@ public class AttendanceController {
 
     private static final String ERROR = "error";
     private static final String NO_LESSON_FOUND = "No lesson with such id found";
+    private static final String STUDENTS_MISSING = "Not all students are present";
     private static final String STUDENTS_GROUP_MISMATCH = "Students from the other group found";
 
     private final AttendanceRepository attendanceRepo;
@@ -39,17 +46,18 @@ public class AttendanceController {
         this.studentsRepo = studentsRepo;
     }
 
-    @GetMapping("/forDateAndLessonAndGroup")
-    public Map<String, Boolean> getGroupAttendanceForLessonAndDate(@RequestParam("date") LocalDate date,
-                                                                   @RequestParam("lessonId") String lessonId,
-                                                                   @RequestParam("groupId") String groupId) {
+    @GetMapping("/byGroupAndLessonAndDate")
+    public Map<String, Boolean> getByGroupAndLessonAndDate(
+            @RequestParam("groupId") String groupId,
+            @RequestParam("lessonId") String lessonId,
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return attendanceRepo.findAllByDateAndLessonIdAndGroupId(date, lessonId, groupId).stream()
                 .collect(Collectors.toMap(a -> a.getStudent().getId(), Attendance::getIsPresent));
     }
 
-    @GetMapping("/forLessonAndGroup")
-    public List<DateAttendance> getGroupAttendance(@RequestParam("lessonId") String lessonId,
-                                                   @RequestParam("groupId") String groupId) {
+    @GetMapping("/byGroupAndLesson")
+    public List<DateAttendance> getByGroupAndLesson(@RequestParam("groupId") String groupId,
+                                                  @RequestParam("lessonId") String lessonId) {
         List<Attendance> attendance = attendanceRepo.findAllByLessonIdAndGroupId(lessonId, groupId);
         Map<LocalDate, List<Attendance>> byDate =
                 attendance.stream().collect(Collectors.groupingBy(Attendance::getDate));
@@ -71,7 +79,9 @@ public class AttendanceController {
         }
 
         List<Student> studentsInGroup = studentsRepo.findAllByGroupId(attendance.getGroupId());
-        if (!studentsInGroup.stream().map(Student::getId).collect(Collectors.toSet())
+        if (studentsInGroup.size() != attendance.getAttendance().size()) {
+            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENTS_MISSING));
+        } else if (!studentsInGroup.stream().map(Student::getId).collect(Collectors.toSet())
                 .equals(attendance.getAttendance().keySet())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENTS_GROUP_MISMATCH));
         }
@@ -109,6 +119,11 @@ public class AttendanceController {
 
         attendanceRepo.saveAll(existing);
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
     }
 
     @Data

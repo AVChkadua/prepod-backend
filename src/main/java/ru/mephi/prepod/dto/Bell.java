@@ -1,6 +1,9 @@
 package ru.mephi.prepod.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Data;
+import ru.mephi.prepod.Views;
 
 import javax.persistence.*;
 import java.time.LocalTime;
@@ -8,16 +11,19 @@ import java.time.LocalTime;
 @Entity
 @Table(name = "bells")
 @Data
+@JsonView({ Views.Bell.class, Views.Lesson.Basic.class, Views.Group.Full.class,
+            Views.Location.Full.class, Views.Professor.Full.class })
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Bell {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private String id;
 
     @Column(name = "is_opening", nullable = false)
     private Boolean isOpening;
 
-    @Column(name = "time", nullable = false)
+    @Column(name = "time", nullable = false, unique = true)
     private LocalTime time;
 }
