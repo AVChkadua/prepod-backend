@@ -2,8 +2,12 @@ package ru.mephi.prepod.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import ru.mephi.prepod.LocalDateDeserializer;
+import ru.mephi.prepod.LocalDateSerializer;
 import ru.mephi.prepod.Views;
 
 import javax.persistence.*;
@@ -36,9 +40,13 @@ public class Lesson {
     private DayOfWeek dayOfWeek;
 
     @Column(name = "start_in_semester")
+    @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate startInSemester;
 
     @Column(name = "end_in_semester")
+    @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate endInSemester;
 
     @ManyToMany(fetch = FetchType.EAGER)

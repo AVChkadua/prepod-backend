@@ -1,5 +1,7 @@
 package ru.mephi.prepod.controller;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +11,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.LocalDateDeserializer;
+import ru.mephi.prepod.LocalDateSerializer;
 import ru.mephi.prepod.dto.Attendance;
 import ru.mephi.prepod.dto.Lesson;
 import ru.mephi.prepod.dto.Student;
@@ -129,6 +133,8 @@ public class AttendanceController {
     @Data
     @AllArgsConstructor
     private static class DateAttendance {
+        @JsonSerialize(using = LocalDateSerializer.class)
+        @JsonDeserialize(using = LocalDateDeserializer.class)
         private LocalDate date;
         private Map<String, Boolean> attendance;
     }
@@ -137,6 +143,8 @@ public class AttendanceController {
     private static class LessonDateAttendance {
         private String lessonId;
         private String groupId;
+        @JsonSerialize(using = LocalDateSerializer.class)
+        @JsonDeserialize(using = LocalDateDeserializer.class)
         private LocalDate date;
         private Map<String, Boolean> attendance;
     }

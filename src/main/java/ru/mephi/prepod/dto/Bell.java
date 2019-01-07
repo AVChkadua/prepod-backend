@@ -2,7 +2,11 @@ package ru.mephi.prepod.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import ru.mephi.prepod.LocalTimeDeserializer;
+import ru.mephi.prepod.LocalTimeSerializer;
 import ru.mephi.prepod.Views;
 
 import javax.persistence.*;
@@ -25,5 +29,7 @@ public class Bell {
     private Boolean isOpening;
 
     @Column(name = "time", nullable = false, unique = true)
+    @JsonSerialize(using = LocalTimeSerializer.class)
+    @JsonDeserialize(using = LocalTimeDeserializer.class)
     private LocalTime time;
 }

@@ -1,5 +1,7 @@
 package ru.mephi.prepod.controller;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ImmutableMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +11,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.LocalDateDeserializer;
+import ru.mephi.prepod.LocalDateSerializer;
 import ru.mephi.prepod.dto.Group;
 import ru.mephi.prepod.dto.Mark;
 import ru.mephi.prepod.dto.Student;
@@ -197,6 +201,8 @@ public class MarksController {
         private String name;
         private String groupId;
         private String subjectId;
+        @JsonSerialize(using = LocalDateSerializer.class)
+        @JsonDeserialize(using = LocalDateDeserializer.class)
         private LocalDate date;
         private Map<String, Integer> marks;
     }
