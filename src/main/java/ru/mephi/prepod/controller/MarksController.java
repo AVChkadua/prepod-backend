@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
-import ru.mephi.prepod.LocalDateDeserializer;
-import ru.mephi.prepod.LocalDateSerializer;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.LocalDateDeserializer;
+import ru.mephi.prepod.common.LocalDateSerializer;
 import ru.mephi.prepod.dto.Group;
 import ru.mephi.prepod.dto.Mark;
 import ru.mephi.prepod.dto.Student;
@@ -92,6 +93,8 @@ public class MarksController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
+                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
     public ResponseEntity create(@RequestBody Marks marks) {
         Optional<Group> group = groupsRepo.findById(marks.getGroupId());
         if (!group.isPresent()) {
@@ -138,6 +141,8 @@ public class MarksController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
+                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
     public ResponseEntity update(@RequestBody Marks newMarks) {
 
         Map<String, Mark> marks = marksRepo.findAllByNameAndSubjectAndGroupId(newMarks.getName(),

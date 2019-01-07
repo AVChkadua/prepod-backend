@@ -3,14 +3,12 @@ package ru.mephi.prepod.controller;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.hibernate.exception.ConstraintViolationException;
-import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Group;
 import ru.mephi.prepod.repo.GroupsRepository;
@@ -58,12 +56,14 @@ public class GroupsController {
 
     @PostMapping
     @JsonView(Views.Group.WithParent.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public Group create(@RequestBody Group group) {
         return groupsRepo.save(group);
     }
 
     @PutMapping
     @JsonView(Views.Group.WithParent.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public ResponseEntity update(@RequestBody Group group) {
         if (!groupsRepo.existsById(group.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
@@ -72,6 +72,7 @@ public class GroupsController {
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(groupsRepo::deleteById);
     }

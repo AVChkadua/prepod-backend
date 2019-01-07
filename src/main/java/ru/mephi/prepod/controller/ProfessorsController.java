@@ -5,8 +5,9 @@ import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Position;
 import ru.mephi.prepod.dto.Professor;
@@ -33,7 +34,7 @@ public class ProfessorsController {
     @Autowired
     public ProfessorsController(ProfessorsRepository professorsRepo, SubjectsRepository subjectsRepo,
                                 DepartmentsRepository departmentsRepo,
-                                PositionsRepository positionsRepository, UsersRepository usersRepo) {
+                                PositionsRepository positionsRepository) {
         this.professorsRepo = professorsRepo;
         this.subjectsRepo = subjectsRepo;
         this.departmentsRepo = departmentsRepo;
@@ -59,6 +60,7 @@ public class ProfessorsController {
 
     @PostMapping
     @JsonView(Views.Professor.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public ResponseEntity create(@RequestBody Professor professor) {
         if (!departmentsRepo.existsById(professor.getDepartment().getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, DEPARTMENT_NOT_FOUND));
@@ -75,6 +77,7 @@ public class ProfessorsController {
 
     @PutMapping
     @JsonView(Views.Professor.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public ResponseEntity update(@RequestBody Professor professor) {
         if (!professorsRepo.existsById(professor.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PROFESSOR_NOT_FOUND));
@@ -88,6 +91,7 @@ public class ProfessorsController {
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(professorsRepo::deleteById);
     }

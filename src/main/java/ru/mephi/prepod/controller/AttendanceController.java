@@ -9,10 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
-import ru.mephi.prepod.LocalDateDeserializer;
-import ru.mephi.prepod.LocalDateSerializer;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.LocalDateDeserializer;
+import ru.mephi.prepod.common.LocalDateSerializer;
 import ru.mephi.prepod.dto.Attendance;
 import ru.mephi.prepod.dto.Lesson;
 import ru.mephi.prepod.dto.Student;
@@ -51,6 +52,8 @@ public class AttendanceController {
     }
 
     @GetMapping("/byGroupAndLessonAndDate")
+    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
+                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
     public Map<String, Boolean> getByGroupAndLessonAndDate(
             @RequestParam("groupId") String groupId,
             @RequestParam("lessonId") String lessonId,
@@ -60,8 +63,10 @@ public class AttendanceController {
     }
 
     @GetMapping("/byGroupAndLesson")
+    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
+                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
     public List<DateAttendance> getByGroupAndLesson(@RequestParam("groupId") String groupId,
-                                                  @RequestParam("lessonId") String lessonId) {
+                                                    @RequestParam("lessonId") String lessonId) {
         List<Attendance> attendance = attendanceRepo.findAllByLessonIdAndGroupId(lessonId, groupId);
         Map<LocalDate, List<Attendance>> byDate =
                 attendance.stream().collect(Collectors.groupingBy(Attendance::getDate));
@@ -76,6 +81,8 @@ public class AttendanceController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
+                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
     public ResponseEntity save(@RequestBody LessonDateAttendance attendance) {
         Optional<Lesson> lesson = lessonsRepo.findById(attendance.getLessonId());
         if (!lesson.isPresent()) {
@@ -105,6 +112,8 @@ public class AttendanceController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
+                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
     public ResponseEntity update(@RequestBody LessonDateAttendance attendance) {
         Optional<Lesson> lesson = lessonsRepo.findById(attendance.getLessonId());
         if (!lesson.isPresent()) {

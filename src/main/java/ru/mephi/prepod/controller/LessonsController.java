@@ -6,9 +6,9 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.*;
 import ru.mephi.prepod.repo.*;
@@ -68,6 +68,7 @@ public class LessonsController {
 
     @PostMapping
     @JsonView(Views.Lesson.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public ResponseEntity create(@RequestBody List<Lesson> lessons) {
         List<Professor> professors = lessons.stream()
                 .map(Lesson::getProfessors)
@@ -124,6 +125,7 @@ public class LessonsController {
 
     @PutMapping
     @JsonView(Views.Lesson.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public ResponseEntity update(@RequestBody List<Lesson> lessons) {
         if (lessons.stream().map(Lesson::getId).anyMatch(id -> !lessonsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, LESSON_NOT_FOUND));
@@ -183,6 +185,7 @@ public class LessonsController {
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public void delete(List<String> ids) {
         ids.forEach(lessonsRepo::deleteById);
     }

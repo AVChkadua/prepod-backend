@@ -1,12 +1,12 @@
 package ru.mephi.prepod.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Location;
 import ru.mephi.prepod.repo.LocationsRepository;
@@ -39,17 +39,20 @@ public class LocationsController {
 
     @PostMapping
     @JsonView(Views.Location.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public Location create(@RequestBody Location location) {
         return locationsRepo.save(location);
     }
 
     @PutMapping
     @JsonView(Views.Location.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public ResponseEntity update(@RequestBody Location location) {
         return ResponseEntity.ok(locationsRepo.save(location));
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(locationsRepo::deleteById);
     }

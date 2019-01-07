@@ -4,8 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.dto.Phone;
 import ru.mephi.prepod.repo.PhonesRepository;
 
@@ -31,11 +32,13 @@ public class PhonesController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public Phone create(@RequestBody Phone phone) {
         return phonesRepo.save(phone);
     }
 
     @PutMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public ResponseEntity update(@RequestBody Phone phone) {
         if (!phonesRepo.existsById(phone.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PHONE_NOT_FOUND));
@@ -45,6 +48,7 @@ public class PhonesController {
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(phonesRepo::deleteById);
     }

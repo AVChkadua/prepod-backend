@@ -5,8 +5,9 @@ import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Position;
 import ru.mephi.prepod.repo.PositionsRepository;
@@ -41,12 +42,14 @@ public class PositionsController {
 
     @PostMapping
     @JsonView(Views.Position.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public Iterable<Position> create(@RequestBody List<Position> positions) {
         return positionsRepo.saveAll(positions);
     }
 
     @PutMapping
     @JsonView(Views.Position.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public ResponseEntity update(@RequestBody List<Position> positions) {
         if (positions.stream().map(Position::getId).anyMatch(id -> !positionsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, POSITION_NOT_FOUND));
@@ -55,6 +58,7 @@ public class PositionsController {
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(positionsRepo::deleteById);
     }

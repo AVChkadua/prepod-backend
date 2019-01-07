@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
-import ru.mephi.prepod.LocalTimeDeserializer;
-import ru.mephi.prepod.LocalTimeSerializer;
+import ru.mephi.prepod.common.LocalTimeDeserializer;
+import ru.mephi.prepod.common.LocalTimeSerializer;
 import ru.mephi.prepod.Views;
 
 import javax.persistence.*;

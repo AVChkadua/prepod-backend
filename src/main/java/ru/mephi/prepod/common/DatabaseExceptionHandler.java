@@ -1,4 +1,4 @@
-package ru.mephi.prepod;
+package ru.mephi.prepod.common;
 
 import com.google.common.collect.ImmutableMap;
 import org.hibernate.exception.ConstraintViolationException;

@@ -1,4 +1,4 @@
-package ru.mephi.prepod;
+package ru.mephi.prepod.common;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

@@ -4,11 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
-import ru.mephi.prepod.dto.Location;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.dto.Subject;
-import ru.mephi.prepod.repo.LocationsRepository;
 import ru.mephi.prepod.repo.SubjectsRepository;
 
 import java.util.List;
@@ -39,11 +38,13 @@ public class SubjectsController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public Subject create(@RequestBody Subject subject) {
         return subjectsRepo.save(subject);
     }
 
     @PutMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public ResponseEntity update(@RequestBody Subject subject) {
         if (!subjectsRepo.existsById(subject.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, SUBJECT_NOT_FOUND));
@@ -53,6 +54,7 @@ public class SubjectsController {
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(subjectsRepo::deleteById);
     }

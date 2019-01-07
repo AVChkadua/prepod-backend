@@ -5,8 +5,9 @@ import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import ru.mephi.prepod.DatabaseExceptionHandler;
+import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.Views;
 import ru.mephi.prepod.dto.Department;
 import ru.mephi.prepod.repo.DepartmentsRepository;
@@ -36,7 +37,7 @@ public class DepartmentsController {
 
     @GetMapping("/byInstitute")
     @JsonView(Views.Department.Basic.class)
-    public List<Department> getByInstitute(@RequestParam("insituteId") String instituteId) {
+    public List<Department> getByInstitute(@RequestParam("instituteId") String instituteId) {
         return departmentsRepo.findAllByInstituteId(instituteId);
     }
 
@@ -48,12 +49,14 @@ public class DepartmentsController {
 
     @PostMapping
     @JsonView(Views.Department.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public Department create(@RequestBody Department department) {
         return departmentsRepo.save(department);
     }
 
     @PutMapping
     @JsonView(Views.Department.Full.class)
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public ResponseEntity update(@RequestBody Department department) {
         if (!departmentsRepo.existsById(department.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, DEPARTMENT_NOT_FOUND));
@@ -62,6 +65,7 @@ public class DepartmentsController {
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(departmentsRepo::deleteById);
     }
