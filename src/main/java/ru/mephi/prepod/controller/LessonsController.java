@@ -14,6 +14,7 @@ import ru.mephi.prepod.dto.*;
 import ru.mephi.prepod.repo.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,57 +71,7 @@ public class LessonsController {
     @JsonView(Views.Lesson.Full.class)
     @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_LESSONS)")
     public ResponseEntity create(@RequestBody List<Lesson> lessons) {
-        List<Professor> professors = lessons.stream()
-                .map(Lesson::getProfessors)
-                .flatMap(Set::stream)
-                .collect(Collectors.toList());
-        if (professors.stream().map(Professor::getId).anyMatch(id -> !professorsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PROFESSOR_NOT_FOUND));
-        }
-
-        List<String> startIds = lessons.stream()
-                .map(Lesson::getStartBell)
-                .map(Bell::getId)
-                .distinct()
-                .collect(Collectors.toList());
-        List<String> endIds = lessons.stream()
-                .map(Lesson::getEndBell)
-                .map(Bell::getId)
-                .distinct()
-                .collect(Collectors.toList());
-        List<Bell> startBells = Lists.newArrayList(bellsRepository.findAllById(startIds));
-        List<Bell> endBells = Lists.newArrayList(bellsRepository.findAllById(endIds));
-
-        if (startBells.size() != startIds.size() || endBells.size() != endIds.size()) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_NOT_FOUND));
-        } else if (startBells.stream().anyMatch(b -> !b.getIsOpening())
-                   || endBells.stream().anyMatch(Bell::getIsOpening)) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_MISUSE));
-        }
-
-        if (lessons.stream()
-                .map(Lesson::getGroups)
-                .flatMap(Set::stream)
-                .map(Group::getId)
-                .anyMatch(id -> !groupsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
-        }
-
-        if (lessons.stream()
-                .map(Lesson::getLocation)
-                .map(Location::getId)
-                .anyMatch(id -> !locationsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, LOCATION_NOT_FOUND));
-        }
-
-        if (lessons.stream()
-                .map(Lesson::getSubject)
-                .map(Subject::getId)
-                .anyMatch(id -> !subjectsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, SUBJECT_NOT_FOUND));
-        }
-
-        return ResponseEntity.ok(lessonsRepo.saveAll(lessons));
+        return validate(lessons).orElseGet(() -> ResponseEntity.ok(lessonsRepo.saveAll(lessons)));
     }
 
     @PutMapping
@@ -130,58 +81,7 @@ public class LessonsController {
         if (lessons.stream().map(Lesson::getId).anyMatch(id -> !lessonsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, LESSON_NOT_FOUND));
         }
-
-        List<Professor> professors = lessons.stream()
-                .map(Lesson::getProfessors)
-                .flatMap(Set::stream)
-                .collect(Collectors.toList());
-        if (professors.stream().map(Professor::getId).anyMatch(id -> !professorsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PROFESSOR_NOT_FOUND));
-        }
-
-        List<String> startIds = lessons.stream()
-                .map(Lesson::getStartBell)
-                .map(Bell::getId)
-                .distinct()
-                .collect(Collectors.toList());
-        List<String> endIds = lessons.stream()
-                .map(Lesson::getEndBell)
-                .map(Bell::getId)
-                .distinct()
-                .collect(Collectors.toList());
-        List<Bell> startBells = Lists.newArrayList(bellsRepository.findAllById(startIds));
-        List<Bell> endBells = Lists.newArrayList(bellsRepository.findAllById(endIds));
-
-        if (startBells.size() != startIds.size() || endBells.size() != endIds.size()) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_NOT_FOUND));
-        } else if (startBells.stream().anyMatch(b -> !b.getIsOpening())
-                   || endBells.stream().anyMatch(Bell::getIsOpening)) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_MISUSE));
-        }
-
-        if (lessons.stream()
-                .map(Lesson::getGroups)
-                .flatMap(Set::stream)
-                .map(Group::getId)
-                .anyMatch(id -> !groupsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
-        }
-
-        if (lessons.stream()
-                .map(Lesson::getLocation)
-                .map(Location::getId)
-                .anyMatch(id -> !locationsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, LOCATION_NOT_FOUND));
-        }
-
-        if (lessons.stream()
-                .map(Lesson::getSubject)
-                .map(Subject::getId)
-                .anyMatch(id -> !subjectsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, SUBJECT_NOT_FOUND));
-        }
-
-        return ResponseEntity.ok(lessonsRepo.saveAll(lessons));
+        return validate(lessons).orElseGet(() -> ResponseEntity.ok(lessonsRepo.saveAll(lessons)));
     }
 
     @DeleteMapping
@@ -195,4 +95,56 @@ public class LessonsController {
         return DatabaseExceptionHandler.handle(e);
     }
 
+    private Optional<ResponseEntity> validate(@RequestBody List<Lesson> lessons) {
+        List<Professor> professors = lessons.stream()
+                .map(Lesson::getProfessors)
+                .flatMap(Set::stream)
+                .collect(Collectors.toList());
+        if (professors.stream().map(Professor::getId).anyMatch(id -> !professorsRepo.existsById(id))) {
+            return Optional.of(ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PROFESSOR_NOT_FOUND)));
+        }
+
+        List<String> startIds = lessons.stream()
+                .map(Lesson::getStartBell)
+                .map(Bell::getId)
+                .distinct()
+                .collect(Collectors.toList());
+        List<String> endIds = lessons.stream()
+                .map(Lesson::getEndBell)
+                .map(Bell::getId)
+                .distinct()
+                .collect(Collectors.toList());
+        List<Bell> startBells = Lists.newArrayList(bellsRepository.findAllById(startIds));
+        List<Bell> endBells = Lists.newArrayList(bellsRepository.findAllById(endIds));
+
+        if (startBells.size() != startIds.size() || endBells.size() != endIds.size()) {
+            return Optional.of(ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_NOT_FOUND)));
+        } else if (startBells.stream().anyMatch(b -> !b.getIsOpening())
+                   || endBells.stream().anyMatch(Bell::getIsOpening)) {
+            return Optional.of(ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, BELL_MISUSE)));
+        }
+
+        if (lessons.stream()
+                .map(Lesson::getGroups)
+                .flatMap(Set::stream)
+                .map(Group::getId)
+                .anyMatch(id -> !groupsRepo.existsById(id))) {
+            return Optional.of(ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND)));
+        }
+
+        if (lessons.stream()
+                .map(Lesson::getLocation)
+                .map(Location::getId)
+                .anyMatch(id -> !locationsRepo.existsById(id))) {
+            return Optional.of(ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, LOCATION_NOT_FOUND)));
+        }
+
+        if (lessons.stream()
+                .map(Lesson::getSubject)
+                .map(Subject::getId)
+                .anyMatch(id -> !subjectsRepo.existsById(id))) {
+            return Optional.of(ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, SUBJECT_NOT_FOUND)));
+        }
+        return Optional.empty();
+    }
 }

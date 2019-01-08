@@ -50,11 +50,7 @@ public class StudentsController {
     @JsonView(Views.Student.Full.class)
     @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_STUDENTS)")
     public ResponseEntity create(@RequestBody Student student) {
-        if (!groupsRepo.existsById(student.getGroup().getId())) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
-        }
-
-        return ResponseEntity.ok(studentsRepo.save(student));
+        return ensureGroupExists(student).orElseGet(() -> ResponseEntity.ok(studentsRepo.save(student)));
     }
 
     @PutMapping
@@ -65,11 +61,7 @@ public class StudentsController {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_NOT_FOUND));
         }
 
-        if (!groupsRepo.existsById(student.getGroup().getId())) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
-        }
-
-        return ResponseEntity.ok(studentsRepo.save(student));
+        return ensureGroupExists(student).orElseGet(() -> ResponseEntity.ok(studentsRepo.save(student)));
     }
 
     @DeleteMapping
@@ -81,5 +73,12 @@ public class StudentsController {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity handler(DataIntegrityViolationException e) {
         return DatabaseExceptionHandler.handle(e);
+    }
+
+    private Optional<ResponseEntity> ensureGroupExists(Student student) {
+        if (!groupsRepo.existsById(student.getGroup().getId())) {
+            return Optional.of(ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND)));
+        }
+        return Optional.empty();
     }
 }

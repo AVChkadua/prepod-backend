@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.common.LocalDateDeserializer;
 import ru.mephi.prepod.common.LocalDateSerializer;
-import ru.mephi.prepod.dto.Group;
 import ru.mephi.prepod.dto.Mark;
 import ru.mephi.prepod.dto.Student;
 import ru.mephi.prepod.dto.Subject;
@@ -27,7 +26,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -97,45 +96,15 @@ public class MarksController {
     @PostMapping
     @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_MARKS)")
     public ResponseEntity create(@RequestBody Marks marks) {
-        Optional<Group> group = groupsRepo.findById(marks.getGroupId());
-        if (!group.isPresent()) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
+        ResponseEntity error = validate(marks);
+        if (error != null) {
+            return error;
         }
 
-        Optional<Subject> subject = subjectsRepo.findById(marks.getSubjectId());
-        if (!subject.isPresent()) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, SUBJECT_NOT_FOUND));
-        }
-
-        if (marks.getMarks().keySet().stream().anyMatch(id -> !studentsRepo.existsById(id))) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_NOT_FOUND));
-        }
-
-        Map<String, Student> students = studentsRepo.findAllByGroupId(marks.getGroupId()).stream()
-                .collect(Collectors.toMap(Student::getId, Function.identity()));
-        if (students.size() < marks.getMarks().keySet().size()
-            || !students.keySet().containsAll(marks.getMarks().keySet())) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_GROUP_MISMATCH));
-        }
-
-        if (students.values().stream().anyMatch(Student::getExpelled)) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_IS_EXPELLED));
-        }
-
-        if (students.values().stream().anyMatch(Student::getLeaveOfAbsence)) {
-            return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_IS_ON_A_BREAK));
-        }
-
-        List<Mark> toSave = new ArrayList<>();
-        for (Map.Entry<String, Integer> mark : marks.getMarks().entrySet()) {
+        List<Mark> toSave = marks.getMarks().entrySet().stream().map(mark -> {
             Mark dto = new Mark();
-            dto.setDate(marks.getDate());
-            dto.setStudent(students.get(mark.getKey()));
-            dto.setMark(Character.forDigit(mark.getValue(), 10));
-            dto.setName(marks.getName());
-            dto.setSubject(subject.get());
-            toSave.add(dto);
-        }
+            return setFields(dto, marks, mark);
+        }).collect(Collectors.toList());
 
         marksRepo.saveAll(toSave);
         return ResponseEntity.ok().build();
@@ -149,23 +118,46 @@ public class MarksController {
                 newMarks.getSubjectId(), newMarks.getGroupId()).stream()
                 .collect(Collectors.toMap(m -> m.getStudent().getId(), Function.identity()));
 
-        if (!groupsRepo.existsById(newMarks.getGroupId())) {
+        ResponseEntity error = validate(newMarks);
+        if (error != null) {
+            return error;
+        }
+
+        List<Mark> toSave = newMarks.getMarks().entrySet().stream().map(mark -> {
+            Mark dto = marks.get(mark.getKey());
+            if (dto != null) {
+                setFields(dto, newMarks, mark);
+            }
+            return dto;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        marksRepo.saveAll(toSave);
+        return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity handler(DataIntegrityViolationException e) {
+        return DatabaseExceptionHandler.handle(e);
+    }
+
+    private ResponseEntity validate(Marks marks) {
+        if (!groupsRepo.existsById(marks.getGroupId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
         }
 
-        Optional<Subject> subject = subjectsRepo.findById(newMarks.getSubjectId());
-        if (!subject.isPresent()) {
+        if (!subjectsRepo.existsById(marks.getSubjectId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, SUBJECT_NOT_FOUND));
         }
 
-        if (newMarks.getMarks().keySet().stream().anyMatch(id -> !studentsRepo.existsById(id))) {
+        if (marks.getMarks().keySet().stream().anyMatch(id -> !studentsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_NOT_FOUND));
         }
 
-        Map<String, Student> students = studentsRepo.findAllByGroupId(newMarks.getGroupId()).stream()
+        Map<String, Student> students = studentsRepo.findAllByGroupId(marks.getGroupId()).stream()
                 .collect(Collectors.toMap(Student::getId, Function.identity()));
-        if (students.size() < newMarks.getMarks().keySet().size()
-            || !students.keySet().containsAll(newMarks.getMarks().keySet())) {
+
+        if (students.size() < marks.getMarks().keySet().size()
+            || !students.keySet().containsAll(marks.getMarks().keySet())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_GROUP_MISMATCH));
         }
 
@@ -177,26 +169,20 @@ public class MarksController {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_IS_ON_A_BREAK));
         }
 
-        List<Mark> toSave = new ArrayList<>();
-        for (Map.Entry<String, Integer> mark : newMarks.getMarks().entrySet()) {
-            Mark dto = marks.get(mark.getKey());
-            if (dto != null) {
-                dto.setDate(newMarks.getDate());
-                dto.setStudent(students.get(mark.getKey()));
-                dto.setMark(Character.forDigit(mark.getValue(), 10));
-                dto.setName(newMarks.getName());
-                dto.setSubject(subject.get());
-                toSave.add(dto);
-            }
-        }
-
-        marksRepo.saveAll(toSave);
-        return ResponseEntity.ok().build();
+        return null;
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity handler(DataIntegrityViolationException e) {
-        return DatabaseExceptionHandler.handle(e);
+    private Mark setFields(Mark dto, Marks newMarks, Map.Entry<String, Integer> studentMark) {
+        Student student = new Student();
+        student.setId(studentMark.getKey());
+        Subject subject = new Subject();
+        subject.setId(newMarks.getSubjectId());
+        dto.setDate(newMarks.getDate());
+        dto.setName(newMarks.getName());
+        dto.setStudent(student);
+        dto.setMark(Character.forDigit(studentMark.getValue(), 10));
+        dto.setSubject(subject);
+        return dto;
     }
 
     @Data

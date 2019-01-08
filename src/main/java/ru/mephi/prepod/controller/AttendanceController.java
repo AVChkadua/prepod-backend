@@ -81,8 +81,7 @@ public class AttendanceController {
     @PostMapping
     @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_ATTENDANCE)")
     public ResponseEntity save(@RequestBody LessonDateAttendance attendance) {
-        Optional<Lesson> lesson = lessonsRepo.findById(attendance.getLessonId());
-        if (!lesson.isPresent()) {
+        if (!lessonsRepo.existsById(attendance.getLessonId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, NO_LESSON_FOUND));
         }
 
@@ -97,10 +96,12 @@ public class AttendanceController {
         List<Attendance> toSave = new ArrayList<>();
         for (Student student : studentsInGroup) {
             Attendance newEntry = new Attendance();
+            Lesson lesson = new Lesson();
+            lesson.setId(attendance.getLessonId());
             newEntry.setDate(attendance.getDate());
             newEntry.setStudent(student);
             newEntry.setIsPresent(attendance.getAttendance().get(student.getId()));
-            newEntry.setLesson(lesson.get());
+            newEntry.setLesson(lesson);
             toSave.add(newEntry);
         }
 
@@ -111,8 +112,7 @@ public class AttendanceController {
     @PutMapping
     @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_ATTENDANCE)")
     public ResponseEntity update(@RequestBody LessonDateAttendance attendance) {
-        Optional<Lesson> lesson = lessonsRepo.findById(attendance.getLessonId());
-        if (!lesson.isPresent()) {
+        if (!lessonsRepo.existsById(attendance.getLessonId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, NO_LESSON_FOUND));
         }
 
