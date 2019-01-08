@@ -23,24 +23,25 @@ public class BellsController {
     }
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     private Iterable<Bell> getAll() {
         return bellsRepo.findAll();
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_BELLS)")
     public Iterable<Bell> save(@RequestBody List<Bell> bells) {
         return bellsRepo.saveAll(bells);
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_BELLS)")
     public Iterable<Bell> update(@RequestBody List<Bell> bells) {
         return bellsRepo.saveAll(bells);
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_BELLS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(bellsRepo::deleteById);
     }

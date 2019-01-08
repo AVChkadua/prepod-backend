@@ -68,7 +68,7 @@ public class LessonsController {
 
     @PostMapping
     @JsonView(Views.Lesson.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_LESSONS)")
     public ResponseEntity create(@RequestBody List<Lesson> lessons) {
         List<Professor> professors = lessons.stream()
                 .map(Lesson::getProfessors)
@@ -125,7 +125,7 @@ public class LessonsController {
 
     @PutMapping
     @JsonView(Views.Lesson.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_LESSONS)")
     public ResponseEntity update(@RequestBody List<Lesson> lessons) {
         if (lessons.stream().map(Lesson::getId).anyMatch(id -> !lessonsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, LESSON_NOT_FOUND));
@@ -185,7 +185,7 @@ public class LessonsController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_LESSONS)")
     public void delete(List<String> ids) {
         ids.forEach(lessonsRepo::deleteById);
     }

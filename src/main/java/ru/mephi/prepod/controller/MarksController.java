@@ -62,6 +62,7 @@ public class MarksController {
     }
 
     @GetMapping("/byNameAndSubjectAndGroup")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).GET_MARKS)")
     public Marks getByNameAndSubjectAndGroup(@RequestParam("name") String name,
                                              @RequestParam("subjectId") String subjectId,
                                              @RequestParam("groupId") String groupId) {
@@ -76,6 +77,7 @@ public class MarksController {
     }
 
     @GetMapping("/bySubjectAndGroup")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).GET_MARKS)")
     public List<Marks> getBySubjectAndGroup(@RequestParam("subjectId") String subjectId,
                                             @RequestParam("groupId") String groupId) {
         List<Marks> list = new ArrayList<>();
@@ -93,8 +95,7 @@ public class MarksController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
-                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_MARKS)")
     public ResponseEntity create(@RequestBody Marks marks) {
         Optional<Group> group = groupsRepo.findById(marks.getGroupId());
         if (!group.isPresent()) {
@@ -141,8 +142,7 @@ public class MarksController {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
-                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_MARKS)")
     public ResponseEntity update(@RequestBody Marks newMarks) {
 
         Map<String, Mark> marks = marksRepo.findAllByNameAndSubjectAndGroupId(newMarks.getName(),

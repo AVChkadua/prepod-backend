@@ -52,8 +52,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/byGroupAndLessonAndDate")
-    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
-                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).GET_ATTENDANCE)")
     public Map<String, Boolean> getByGroupAndLessonAndDate(
             @RequestParam("groupId") String groupId,
             @RequestParam("lessonId") String lessonId,
@@ -63,8 +62,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/byGroupAndLesson")
-    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
-                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).GET_ATTENDANCE)")
     public List<DateAttendance> getByGroupAndLesson(@RequestParam("groupId") String groupId,
                                                     @RequestParam("lessonId") String lessonId) {
         List<Attendance> attendance = attendanceRepo.findAllByLessonIdAndGroupId(lessonId, groupId);
@@ -81,8 +79,7 @@ public class AttendanceController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
-                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_ATTENDANCE)")
     public ResponseEntity save(@RequestBody LessonDateAttendance attendance) {
         Optional<Lesson> lesson = lessonsRepo.findById(attendance.getLessonId());
         if (!lesson.isPresent()) {
@@ -112,8 +109,7 @@ public class AttendanceController {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT, " +
-                  "T(ru.mephi.prepod.security.Role).PROFESSOR)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_ATTENDANCE)")
     public ResponseEntity update(@RequestBody LessonDateAttendance attendance) {
         Optional<Lesson> lesson = lessonsRepo.findById(attendance.getLessonId());
         if (!lesson.isPresent()) {

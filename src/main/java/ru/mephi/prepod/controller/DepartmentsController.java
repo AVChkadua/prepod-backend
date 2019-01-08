@@ -49,14 +49,14 @@ public class DepartmentsController {
 
     @PostMapping
     @JsonView(Views.Department.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_DEPARTMENTS)")
     public Department create(@RequestBody Department department) {
         return departmentsRepo.save(department);
     }
 
     @PutMapping
     @JsonView(Views.Department.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_DEPARTMENTS)")
     public ResponseEntity update(@RequestBody Department department) {
         if (!departmentsRepo.existsById(department.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, DEPARTMENT_NOT_FOUND));
@@ -65,7 +65,7 @@ public class DepartmentsController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_DEPARTMENTS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(departmentsRepo::deleteById);
     }

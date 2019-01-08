@@ -36,13 +36,13 @@ public class UsersController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_USERS)")
     public User create(@RequestBody User user) {
         return usersRepo.save(user);
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_USERS)")
     public ResponseEntity update(@RequestBody User user) {
         if (!usersRepo.existsById(user.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, USER_NOT_FOUND));
@@ -51,7 +51,7 @@ public class UsersController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_USERS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(usersRepo::deleteById);
     }

@@ -39,20 +39,20 @@ public class LocationsController {
 
     @PostMapping
     @JsonView(Views.Location.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_LOCATIONS)")
     public Location create(@RequestBody Location location) {
         return locationsRepo.save(location);
     }
 
     @PutMapping
     @JsonView(Views.Location.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_LOCATIONS)")
     public ResponseEntity update(@RequestBody Location location) {
         return ResponseEntity.ok(locationsRepo.save(location));
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_LOCATIONS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(locationsRepo::deleteById);
     }

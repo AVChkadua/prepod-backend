@@ -43,14 +43,14 @@ public class InstitutesController {
 
     @PostMapping
     @JsonView(Views.Institute.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_INSTITUTES)")
     public Institute create(@RequestBody Institute institute) {
         return institutesRepo.save(institute);
     }
 
     @PutMapping
     @JsonView(Views.Institute.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_INSTITUTES)")
     public ResponseEntity update(@RequestBody Institute institute) {
         if (!institutesRepo.existsById(institute.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, INSTITUTE_NOT_FOUND));
@@ -59,7 +59,7 @@ public class InstitutesController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_INSTITUTES)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(institutesRepo::deleteById);
     }

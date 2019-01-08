@@ -48,7 +48,7 @@ public class StudentsController {
 
     @PostMapping
     @JsonView(Views.Student.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_STUDENTS)")
     public ResponseEntity create(@RequestBody Student student) {
         if (!groupsRepo.existsById(student.getGroup().getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
@@ -59,7 +59,7 @@ public class StudentsController {
 
     @PutMapping
     @JsonView(Views.Student.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_STUDENTS)")
     public ResponseEntity update(@RequestBody Student student) {
         if (!studentsRepo.existsById(student.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, STUDENT_NOT_FOUND));
@@ -73,7 +73,7 @@ public class StudentsController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_STUDENTS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(studentsRepo::deleteById);
     }

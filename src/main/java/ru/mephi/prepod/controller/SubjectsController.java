@@ -38,13 +38,13 @@ public class SubjectsController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_SUBJECTS)")
     public Subject create(@RequestBody Subject subject) {
         return subjectsRepo.save(subject);
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_SUBJECTS)")
     public ResponseEntity update(@RequestBody Subject subject) {
         if (!subjectsRepo.existsById(subject.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, SUBJECT_NOT_FOUND));
@@ -54,7 +54,7 @@ public class SubjectsController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_SUBJECTS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(subjectsRepo::deleteById);
     }

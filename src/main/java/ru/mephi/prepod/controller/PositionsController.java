@@ -42,14 +42,14 @@ public class PositionsController {
 
     @PostMapping
     @JsonView(Views.Position.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_POSITIONS)")
     public Iterable<Position> create(@RequestBody List<Position> positions) {
         return positionsRepo.saveAll(positions);
     }
 
     @PutMapping
     @JsonView(Views.Position.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_POSITIONS)")
     public ResponseEntity update(@RequestBody List<Position> positions) {
         if (positions.stream().map(Position::getId).anyMatch(id -> !positionsRepo.existsById(id))) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, POSITION_NOT_FOUND));
@@ -58,7 +58,7 @@ public class PositionsController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_POSITIONS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(positionsRepo::deleteById);
     }

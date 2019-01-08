@@ -32,13 +32,13 @@ public class PhonesController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_PHONES)")
     public Phone create(@RequestBody Phone phone) {
         return phonesRepo.save(phone);
     }
 
     @PutMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_PHONES)")
     public ResponseEntity update(@RequestBody Phone phone) {
         if (!phonesRepo.existsById(phone.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PHONE_NOT_FOUND));
@@ -48,7 +48,7 @@ public class PhonesController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).ADMIN)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_PHONES)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(phonesRepo::deleteById);
     }

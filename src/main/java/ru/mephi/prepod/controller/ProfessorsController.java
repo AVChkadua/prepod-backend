@@ -63,7 +63,7 @@ public class ProfessorsController {
 
     @PostMapping
     @JsonView(Views.Professor.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_PROFESSORS)")
     public ResponseEntity create(@RequestBody Professor professor) {
         if (!departmentsRepo.existsById(professor.getDepartment().getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, DEPARTMENT_NOT_FOUND));
@@ -80,7 +80,7 @@ public class ProfessorsController {
 
     @PutMapping
     @JsonView(Views.Professor.Full.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_PROFESSORS)")
     public ResponseEntity update(@RequestBody Professor professor) {
         if (!professorsRepo.existsById(professor.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, PROFESSOR_NOT_FOUND));
@@ -94,7 +94,7 @@ public class ProfessorsController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_PROFESSORS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(professorsRepo::deleteById);
     }

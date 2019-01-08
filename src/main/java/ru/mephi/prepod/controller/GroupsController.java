@@ -56,14 +56,14 @@ public class GroupsController {
 
     @PostMapping
     @JsonView(Views.Group.WithParent.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_GROUPS)")
     public Group create(@RequestBody Group group) {
         return groupsRepo.save(group);
     }
 
     @PutMapping
     @JsonView(Views.Group.WithParent.class)
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_GROUPS)")
     public ResponseEntity update(@RequestBody Group group) {
         if (!groupsRepo.existsById(group.getId())) {
             return ResponseEntity.badRequest().body(ImmutableMap.of(ERROR, GROUP_NOT_FOUND));
@@ -72,7 +72,7 @@ public class GroupsController {
     }
 
     @DeleteMapping
-    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Role).HEAD_OF_DEPARTMENT)")
+    @PreAuthorize("hasAuthority(T(ru.mephi.prepod.security.Authority).EDIT_GROUPS)")
     public void delete(@RequestBody List<String> ids) {
         ids.forEach(groupsRepo::deleteById);
     }
