@@ -12,6 +12,7 @@ import ru.mephi.prepod.common.DatabaseExceptionHandler;
 import ru.mephi.prepod.dto.Position;
 import ru.mephi.prepod.dto.Professor;
 import ru.mephi.prepod.dto.Subject;
+import ru.mephi.prepod.dto.User;
 import ru.mephi.prepod.repo.DepartmentsRepository;
 import ru.mephi.prepod.repo.PositionsRepository;
 import ru.mephi.prepod.repo.ProfessorsRepository;
@@ -59,6 +60,14 @@ public class ProfessorsController {
     @JsonView(Views.Professor.Full.class)
     public Optional<Professor> getById(@PathVariable("id") String id) {
         return professorsRepo.findById(id);
+    }
+
+    @GetMapping("/byUser/{id}")
+    @JsonView(Views.Professor.Full.class)
+    public Optional<Professor> getByUserId(@PathVariable("id") String id) {
+        User user = new User();
+        user.setId(id);
+        return professorsRepo.findByUser(user);
     }
 
     @PostMapping
