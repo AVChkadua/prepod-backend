@@ -35,7 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                                             "JOIN roles_authorities ra on r.id = ra.role_id " +
                                             "JOIN authorities a on ra.authority_name = a.authority " +
                                             "WHERE u.username = ?")
-                .passwordEncoder(new BCryptPasswordEncoder(10))
+                .passwordEncoder(new Base64PasswordEncoder())
                 .dataSource(dataSource);
     }
 
