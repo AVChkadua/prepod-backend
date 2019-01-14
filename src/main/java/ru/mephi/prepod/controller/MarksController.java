@@ -67,7 +67,7 @@ public class MarksController {
                                              @RequestParam("groupId") String groupId) {
         List<Mark> all = marksRepo.findAllByNameAndSubjectAndGroupId(name, subjectId, groupId);
         Map<String, Integer> marks = all.stream()
-                .collect(Collectors.toMap(m -> m.getStudent().getId(), m -> Integer.valueOf(m.getMark())));
+                .collect(Collectors.toMap(m -> m.getStudent().getId(), m -> Character.getNumericValue(m.getMark())));
         return new Marks(all.get(0).getName(),
                 all.get(0).getStudent().getGroup().getId(),
                 all.get(0).getSubject().getId(),
@@ -84,7 +84,8 @@ public class MarksController {
         Map<String, List<Mark>> byName = all.stream().collect(Collectors.groupingBy(Mark::getName));
         for (List<Mark> marks : byName.values()) {
             Map<String, Integer> byStudentId = marks.stream()
-                    .collect(Collectors.toMap(m -> m.getStudent().getId(), m -> Integer.valueOf(m.getMark())));
+                    .collect(Collectors.toMap(m -> m.getStudent().getId(),
+                            m -> Character.getNumericValue(m.getMark())));
             list.add(new Marks(marks.get(0).getName(),
                     all.get(0).getStudent().getGroup().getId(),
                     all.get(0).getSubject().getId(),
