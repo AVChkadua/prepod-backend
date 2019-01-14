@@ -24,7 +24,7 @@ public class BellsController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    private Iterable<Bell> getAll() {
+    public Iterable<Bell> getAll() {
         return bellsRepo.findAll();
     }
 
